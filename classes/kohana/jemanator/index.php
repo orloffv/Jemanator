@@ -14,7 +14,7 @@
 	*/
 
 
-	class Kohana_Jemanator_Index{
+	class Kohana_Jemanator_Index extends Kohana_Jemanator_Statement {
 
 		protected $_name;
 		protected $_columns;

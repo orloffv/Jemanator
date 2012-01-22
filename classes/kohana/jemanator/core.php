@@ -2,31 +2,92 @@
 
 class Kohana_Jemanator_Core {
 
-    public static function get_models()
+    public function create_table($model)
     {
-        $fields = Jelly::meta('page')->fields();
+        $fields = Jelly::meta($model)->fields();
 
-        $table = new Kohana_Jemanator_Table(Jelly::meta('page')->table());
-        var_dump($fields);
+        $table = new Kohana_Jemanator_Statement_CreateTable(Jelly::meta($model)->table(),
+            array('id' => false, 'created' => false, 'modified'    => false, 'primary_key' => false)
+        );
+
         foreach ($fields as $field)
         {
             if ($field->in_db)
             {
-                $table->set_field(new Kohana_Jemanator_Field($field));
+                $table->addColumn($this->get_type($field), $field->column, array('null' => $this->get_null($field), 'default' => $this->get_default($field)));
 
                 if ($field->primary)
                 {
-                    $table->set_primary_key($field->column);
+                    $table->primaryKey($field->column);
                 }
 
                 if ($field->unique)
                 {
-                    $table->set_key(new Kohana_Jemanator_Key(array($field->column => array()), array('unique')));
+                    $table->addKey(array($field->column => array()), array('name' => $field->column.'_unique','unique'));
                 }
             }
         }
 
-        var_dump($table->toSQL());
+        return $table->toSQL();
     }
 
+    protected function get_type($field)
+    {
+        if ($field instanceof Jelly_Field_Primary)
+        {
+            $type = 'primary';
+        }
+        elseif ($field instanceof Jelly_Field_Integer)
+        {
+            $type = 'integer';
+        }
+        elseif ($field instanceof Jelly_Field_Boolean)
+        {
+            $type = 'bool';
+        }
+        elseif ($field instanceof Jelly_Field_Text)
+        {
+            $type = 'text';
+        }
+        elseif ($field instanceof Jelly_Field_String)
+        {
+            $type = 'string';
+        }
+        elseif ($field instanceof Jelly_Field_My_Datetime)
+        {
+            $type = 'datetime';
+        }
+        else
+        {
+            var_dump($field);
+        }
+
+        return $type;
+    }
+
+    protected function get_null($field)
+    {
+        //var_dump($field->allow_null);
+        foreach ($field->rules as $rule)
+        {
+            if (Arr::get($rule, 0) == 'not_empty')
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    protected function get_default($field)
+    {
+        if ($field instanceof Jelly_Field_My_Datetime)
+        {
+            return null;
+        }
+        else
+        {
+            return $field->default;
+        }
+    }
 }
