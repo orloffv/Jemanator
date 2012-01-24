@@ -37,7 +37,7 @@ class Kohana_Jemanator_Core {
         {
             $type = 'primary';
         }
-        elseif ($field instanceof Jelly_Field_Integer)
+        elseif ($field instanceof Jelly_Field_Integer OR $field instanceof Jelly_Field_BelongsTo)
         {
             $type = 'integer';
         }
@@ -56,6 +56,14 @@ class Kohana_Jemanator_Core {
         elseif ($field instanceof Jelly_Field_My_Datetime)
         {
             $type = 'datetime';
+        }
+        elseif ($field instanceof Jelly_Field_File)
+        {
+            $type = 'string';
+        }
+        elseif ($field instanceof Jelly_Field_Float)
+        {
+            $type = 'float';
         }
         else
         {
